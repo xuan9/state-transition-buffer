@@ -1,7 +1,6 @@
 /**
- * Do your messages change too fast for users to read? The TimeBuffered here is to rescue.
- * Define a min duration time in the message, so the next message will not push it away immedialely,
- * but get queued behind it until the min-duration time passed.
+ * Does state change too quickly? 
+ * With stage-transition-buffer, the minimum duration of any state can be secured.
  */
 
 /**
@@ -21,7 +20,7 @@ export interface TimeBufferedItem<T> {
  * A generic object to buffer the value changes for a minimum duration.
  *  Example usage:
  *  ```javascript
- *  let connectionState = new TimeBuffered({defaultMinDuration:1000, isRemoveLastDuplicated:true});
+ *  let connectionState = new StateBuffer({defaultMinDuration:1000, isRemoveLastDuplicated:true});
  *  connectionState.push("connecting...",500);
  *  connectionState.push("connected",2000);
  *  connectionState.push();
@@ -34,7 +33,7 @@ export interface TimeBufferedItem<T> {
  *  let timeBufferedItems[] = connectionState.timeBufferedItems;
  * ```
  */
-export default class TimeBuffered<T> {
+export default class StateBuffer<T> {
   public timeBufferedItems = new Array<TimeBufferedItem<T>>();
   public isRemoveLastDuplicated?: boolean = false;
   public defaultMinDuration?: number;
@@ -44,7 +43,7 @@ export default class TimeBuffered<T> {
    * @param defaultMinDuration optinal,used if no minDuration parameter given on push
    * @param isRemoveLastDuplicated optinal, if true, will try to remove the last value in the buffer immediately if it DEEP equals with the new value
    */
-  public TimeBuffered(options?: {
+  public StateBuffer(options?: {
     defaultMinDuration?: number;
     isRemoveLastDuplicated?: boolean;
   }) {

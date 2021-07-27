@@ -1,7 +1,7 @@
-import TimeBuffered from "../src/index";
+import StateBuffer from "../src/index";
 import "jest-extended";
 
-test("test TimeBuffered with default options", () => {
+test("test StateBuffer with default options", () => {
   //mock Date.now() function, which is used in the code to check if state is expired.
   let now = 1530518207007;
   global.Date.now = jest.fn(()=>now);
@@ -13,7 +13,7 @@ test("test TimeBuffered with default options", () => {
   expect(setTimeout).toHaveBeenCalledTimes(1);
   jest.clearAllMocks();
 
-  let loadingState = new TimeBuffered();
+  let loadingState = new StateBuffer();
   // test first push
   loadingState.push("loading", 1000);
   expect(loadingState.size()).toEqual(1);

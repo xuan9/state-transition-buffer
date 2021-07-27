@@ -1,6 +1,6 @@
 {
   "name": "state-transition-buffer",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Does state change too quickly? With stage-transition-buffer, the minimum duration of any state can be assured. ",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -21,7 +21,7 @@
     "slow",
     "buffer"
   ],
-  "author": "",
+  "author": "xuan9",
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^26.0.23",
