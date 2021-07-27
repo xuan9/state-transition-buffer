@@ -1,0 +1,42 @@
+{
+  "name": "state-transition-buffer",
+  "version": "1.0.0",
+  "description": "Does state change too quickly? With stage-transition-buffer, the minimum duration of any state can be assured. ",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "tslint -c tslint.json *.ts",
+    "test": "npm run lint && npm run build && jest dist/__tests__/*js",
+    "test:debug": "npm run lint && npm run build && node --inspect-brk node_modules/.bin/jest --runInBand dist/__tests__/*js"
+  },
+  "keywords": [
+    "state",
+    "transition",
+    "queue",
+    "cache",
+    "delay",
+    "fast",
+    "slow",
+    "buffer"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^26.0.23",
+    "jest": "^27.0.6",
+    "jest-extended": "^0.11.5",
+    "tslint": "^6.1.3",
+    "typescript": "^4.3.5"
+  },
+  "jest": {
+    "verbose": true,
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "setupFilesAfterEnv": [
+      "jest-extended"
+    ]
+  }
+}
