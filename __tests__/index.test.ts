@@ -1,11 +1,11 @@
-import { StateBuffer }from "../src/index";
+import { StateBuffer } from "../src/index";
 import "jest-extended";
 
 test("test StateBuffer with default options", () => {
   //mock Date.now() function, which is used in the code to check if state is expired.
   let now = 1530518207007;
-  global.Date.now = jest.fn(()=>now);
-  expect(Date.now() ).toBe(now);
+  global.Date.now = jest.fn(() => now);
+  expect(Date.now()).toBe(now);
 
   //make sure the timer mock works, the default "modern" doesn't work for me
   jest.useFakeTimers("legacy");
@@ -13,7 +13,11 @@ test("test StateBuffer with default options", () => {
   expect(setTimeout).toHaveBeenCalledTimes(1);
   jest.clearAllMocks();
 
-  let loadingState = new StateBuffer();
+  let loadingState = new StateBuffer({
+    defaultMinDuration: 1000,
+    removeLastDuplicated: true
+  });
+
   // test first push
   loadingState.push("loading", 1000);
   expect(loadingState.size()).toEqual(1);
@@ -26,9 +30,9 @@ test("test StateBuffer with default options", () => {
   expect(loadingState.get()[0]).toEqual("loading");
   expect(setTimeout).toHaveBeenCalledTimes(0);
 
-  // push the second value after minDuration passed: 
+  // push the second value after minDuration passed:
   //     the stage will be transite immediately
-  loadingState.push("failed", 1000);
+  loadingState.push("failed");
   expect(setTimeout).toHaveBeenCalledTimes(0);
   expect(loadingState.size()).toEqual(1);
 
@@ -36,8 +40,8 @@ test("test StateBuffer with default options", () => {
   expect(loadingState.size()).toEqual(1);
   expect(loadingState.get()[0]).toEqual("failed");
 
-  // push the 3rd value before 0.5s which < minDuration 
-  loadingState.push("loading", 1000);
+  // push the 3rd value before 0.5s which < minDuration 1s
+  loadingState.push("loading");
   expect(loadingState.size()).toEqual(2);
   expect(loadingState.get()[0]).toEqual("loading");
   expect(loadingState.get()[1]).toEqual("failed");
@@ -47,9 +51,9 @@ test("test StateBuffer with default options", () => {
     expect.toBeWithin(400, 600)
   );
 
-   // test empty push
+  // test empty push
   now += 2000;
   expect(loadingState.get()[0]).toEqual("loading");
-  loadingState.push(); //push nothing after 2s > minDuration, it pushes away the existing values 
+  loadingState.push(); //push nothing after 2s > minDuration, it pushes away the existing values
   expect(loadingState.size()).toEqual(0);
 });

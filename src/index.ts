@@ -45,7 +45,7 @@ export class StateBuffer<T> {
    * @param defaultMinDuration optinal,used if no minDuration parameter given on push
    * @param removeLastDuplicated optinal, if true, will try to remove the last value in the buffer immediately if it DEEP equals with the new value
    */
-  public StateBuffer(options?: {
+  constructor(options?: {
     defaultMinDuration?: number;
     removeLastDuplicated?: boolean;
   }) {
