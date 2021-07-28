@@ -1,4 +1,4 @@
-import StateBuffer from "../src/index";
+import { StateBuffer }from "../src/index";
 import "jest-extended";
 
 test("test StateBuffer with default options", () => {
