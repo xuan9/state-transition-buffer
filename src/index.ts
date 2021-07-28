@@ -20,18 +20,19 @@ export interface BufferedItem<T> {
  * A generic object to buffer the value changes for a minimum duration.
  *  Example usage:
  *  ```javascript
- *  import { StateBuffer } from 'state-transition-buffer';
- *  let connectionState = new StateBuffer({defaultMinDuration:1000, removeLastDuplicated:true});
- *  connectionState.push("connecting...",500);
- *  connectionState.push("connected",2000);
- *  connectionState.push();
- *  connectionState.push("connection lost");
- *  connectionState.push("re-connecting...",500);
- *  connectionState.push("connection failed");
- *  // get the current values in the buffer
- *  let currentConnectionStates = connectionState.get();
- *  // the current internal buffered items which have the time details, it returns a new array if there was any new push, so it can be used for listening.
- *  let bufferedItems = connectionState.bufferedItems;
+ * import { StateBuffer } from 'state-transition-buffer';
+ * let connectionState = new StateBuffer({
+ *   defaultMinDuration: 1000,
+ *   removeLastDuplicated: true
+ * });
+ * connectionState.push("connecting...", 500); 
+ * connectionState.push("connected", 2000); 
+ * connectionState.push();
+ * connectionState.push("connection lost"); 
+ * connectionState.push("re-connecting...", 500); 
+ * connectionState.push("connection failed");
+ * let currentConnectionStates = connectionState.get();
+ * let bufferedItems = connectionState.bufferedItems;
  * ```
  */
 export class StateBuffer<T> {
