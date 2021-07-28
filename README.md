@@ -3,19 +3,25 @@ Does state change too quickly? With stage-transition-buffer, the minimum duratio
 
 # usage example
 ```javascript
-import { StateBuffer } from 'state-transition-buffer';
+import { StateBuffer } from '../dist/src/index.js';
+
 let connectionState = new StateBuffer({
   defaultMinDuration: 1000,
   removeLastDuplicated: true
 });
-connectionState.push("connecting...", 500); //at least 0.5s
-connectionState.push("connected", 2000); // at least 2s
-connectionState.push();//empty push
-connectionState.push("connection lost"); //use the default 1s 
-connectionState.push("re-connecting...", 500); 
-connectionState.push("connection failed");
-// get the current states in the buffer
-let currentConnectionStates = connectionState.get();
-// the current internal buffered items which have the time details, it returns a new array if there was any new push, so it can be used for listening.
-let bufferedItems = connectionState.bufferedItems;
+
+let onchange = () => {
+  let bufferedState = connectionState.last; //the one to show to user
+  let realtimeState = connectionState.first;
+  console.info(new Date(), bufferedState, realtimeState);
+};
+connectionState.registerChangeHandler(onchange);
+connectionState.push("connecting...");
+connectionState.push("connected", 2000);
+connectionState.push();
+connectionState.push("re-connecting...");
+connectionState.push("failed to connect");
+connectionState.push("re-connecting...");
+connectionState.push("failed to connect");
+connectionState.removeChangeHandler(onchange);
 ```

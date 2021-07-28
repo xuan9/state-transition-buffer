@@ -1,5 +1,7 @@
+import EventEmitter from "events";
+
 /**
- * Does state change too quickly? 
+ * Does state change too quickly?
  * With stage-transition-buffer, the minimum duration of any state can be secured.
  */
 
@@ -10,11 +12,16 @@
  *
  * @property timestamp the timestamp in millisconds, which recorded when the value gets pushed
  */
-export interface BufferedItem<T> {
+export interface StateBufferedItem<T> {
   value: T;
   minDuration: number;
   timestamp: number;
 }
+
+/**
+ * The name of event fired when buffer changes
+ */
+export const StateBufferChangeEvent = "change";
 
 /**
  * A generic object to buffer the value changes for a minimum duration.
@@ -25,21 +32,41 @@ export interface BufferedItem<T> {
  *   defaultMinDuration: 1000,
  *   removeLastDuplicated: true
  * });
- * connectionState.push("connecting...", 500); 
- * connectionState.push("connected", 2000); 
+ *
+ * let onchange = () => {
+ *   let bufferedState = connectionState.last;//the one to show to user
+ *   let realtimeState = connectionState.first;
+ *   console.info(bufferedState, realtimeState);
+ * }
+ * connectionState.registerChangeHandler(onchange);
+ *
+ * connectionState.push("connecting...", 500);
+ * connectionState.push("connected", 2000);
  * connectionState.push();
- * connectionState.push("connection lost"); 
- * connectionState.push("re-connecting...", 500); 
+ * connectionState.push("connection lost");
+ * connectionState.push("re-connecting...", 500);
  * connectionState.push("connection failed");
- * let currentConnectionStates = connectionState.get();
- * let bufferedItems = connectionState.bufferedItems;
+ *
+ * connectionState.removeChangeHandler(onchange);
  * ```
  */
-export class StateBuffer<T> {
-  public bufferedItems = new Array<BufferedItem<T>>();
-  public removeLastDuplicated?: boolean = false;
-  public defaultMinDuration?: number;
 
+export class StateBuffer<T> extends EventEmitter {
+  /**
+   * Options
+   */
+  private removeLastDuplicated?: boolean = false;
+  private defaultMinDuration?: number;
+
+  /**
+   * internal buffered queue which has the time details
+   */
+  public bufferedItems = new Array<StateBufferedItem<T>>();
+  /**
+   * internal buffered queue which has the time details
+   */
+  public first?: T = undefined;
+  public last?: T = undefined;
   /**
    * Constuct the value buffer with two optional options:
    * @param defaultMinDuration optinal,used if no minDuration parameter given on push
@@ -49,6 +76,7 @@ export class StateBuffer<T> {
     defaultMinDuration?: number;
     removeLastDuplicated?: boolean;
   }) {
+    super();
     this.defaultMinDuration = options?.defaultMinDuration;
     this.removeLastDuplicated = options?.removeLastDuplicated;
   }
@@ -59,6 +87,25 @@ export class StateBuffer<T> {
 
   public size() {
     return this.bufferedItems.length;
+  }
+
+  public registerChangeHandler(handler: () => void) {
+    return this.on(StateBufferChangeEvent, handler);
+  }
+
+  public removeChangeHandler(handler: () => void) {
+    return this.removeListener(StateBufferChangeEvent, handler);
+  }
+
+  private updateHeaders() {
+    if (this.bufferedItems.length > 0) {
+      this.first = this.bufferedItems[0].value;
+      this.last = this.bufferedItems[this.bufferedItems.length - 1].value;
+    } else {
+      this.first = undefined;
+      this.last = undefined;
+    }
+    this.emit(StateBufferChangeEvent);
   }
 
   public push(value?: T, minDuration?: number) {
@@ -74,32 +121,32 @@ export class StateBuffer<T> {
     // push away expried messages
     items = items.filter(i => i.timestamp > now - i.minDuration);
 
-    //return if no value to save
-    if (value == undefined) {
-      this.bufferedItems = items;
-      return;
-    }
-
-    // push the current message with a timestamp
-    const item: BufferedItem<T> = {
-      value,
-      minDuration,
-      timestamp: Date.now()
-    };
-
-    // ask the last old value if any to move away later when the min duration is completed
+    // ask the last value to expire when the min duration is completed
     if (items.length > 0) {
       const last = items[0];
-      const durationLeft = item.minDuration - (now - last.timestamp);
+      const durationLeft = last.minDuration - (now - last.timestamp);
       setTimeout(
         () => {
           this.remove(last.value);
+          this.updateHeaders();
         },
         durationLeft < 0 ? 0 : durationLeft
       );
     }
 
-    this.bufferedItems = [item, ...items];
+    if (value == undefined) {//no new item to add if undefined value is pushed
+      this.bufferedItems = items;
+    } else {//add new item if defined
+      // push the current message with a timestamp
+      const item: StateBufferedItem<T> = {
+        value,
+        minDuration,
+        timestamp: Date.now()
+      };
+      this.bufferedItems = [item, ...items];
+    }
+
+    this.updateHeaders();
   }
 
   private doRemovingLastDuplicated(value: T) {
@@ -115,9 +162,7 @@ export class StateBuffer<T> {
 
   private remove(value: T): void {
     // console.info("remove :", value);
-    const index = this.bufferedItems.findIndex(s =>
-      deepEqual(s.value, value)
-    );
+    const index = this.bufferedItems.findIndex(s => deepEqual(s.value, value));
     if (index >= 0) {
       this.bufferedItems = [
         ...this.bufferedItems.slice(0, index),

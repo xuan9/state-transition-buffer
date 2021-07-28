@@ -21,39 +21,45 @@ test("test StateBuffer with default options", () => {
   // test first push
   loadingState.push("loading", 1000);
   expect(loadingState.size()).toEqual(1);
-  expect(loadingState.get()[0]).toEqual("loading");
+  expect(loadingState.first).toEqual("loading");
+  expect(loadingState.last).toEqual("loading");
   expect(setTimeout).toHaveBeenCalledTimes(0);
 
-  // the state stays if there is no new push, after 2s which > minDuration.
-  now += 2000;
+  // the state stays if there is no new push.
   expect(loadingState.size()).toEqual(1);
-  expect(loadingState.get()[0]).toEqual("loading");
+  expect(loadingState.first).toEqual("loading");
+  expect(loadingState.last).toEqual("loading");
   expect(setTimeout).toHaveBeenCalledTimes(0);
 
   // push the second value after minDuration passed:
   //     the stage will be transite immediately
+  now += 2000;
   loadingState.push("failed");
   expect(setTimeout).toHaveBeenCalledTimes(0);
   expect(loadingState.size()).toEqual(1);
-
+  expect(loadingState.first).toEqual("failed");
+  expect(loadingState.last).toEqual("failed");
+  // push the 3rd value after 0.5s which < minDuration 1s
   now += 500;
-  expect(loadingState.size()).toEqual(1);
-  expect(loadingState.get()[0]).toEqual("failed");
-
-  // push the 3rd value before 0.5s which < minDuration 1s
-  loadingState.push("loading");
+  loadingState.push("loading", 500);
   expect(loadingState.size()).toEqual(2);
-  expect(loadingState.get()[0]).toEqual("loading");
-  expect(loadingState.get()[1]).toEqual("failed");
+  expect(loadingState.first).toEqual("loading");
+  expect(loadingState.last).toEqual("failed");
   expect(setTimeout).toHaveBeenCalledTimes(1);
   expect(setTimeout).toHaveBeenLastCalledWith(
     expect.any(Function),
     expect.toBeWithin(400, 600)
   );
 
-  // test empty push
-  now += 2000;
-  expect(loadingState.get()[0]).toEqual("loading");
-  loadingState.push(); //push nothing after 2s > minDuration, it pushes away the existing values
+  // test empty push after the old expired hasn't expired
+  now += 100;
+  loadingState.push(); 
+  expect(loadingState.size()).toEqual(2);
+  // test empty push after the old expired has expired
+  now += 500;
+  loadingState.push(); 
   expect(loadingState.size()).toEqual(0);
+  expect(loadingState.first).toEqual(undefined);
+  expect(loadingState.last).toEqual(undefined);
+
 });
