@@ -20,7 +20,7 @@ export interface TimeBufferedItem<T> {
  * A generic object to buffer the value changes for a minimum duration.
  *  Example usage:
  *  ```javascript
- *  let connectionState = new StateBuffer({defaultMinDuration:1000, isRemoveLastDuplicated:true});
+ *  let connectionState = new StateBuffer({defaultMinDuration:1000, removeLastDuplicated:true});
  *  connectionState.push("connecting...",500);
  *  connectionState.push("connected",2000);
  *  connectionState.push();
@@ -28,27 +28,27 @@ export interface TimeBufferedItem<T> {
  *  connectionState.push("re-connecting...",500);
  *  connectionState.push("connection failed");
  *  // get the current values in the buffer
- *  let currentConnectionStates[] = connectionState.get();
+ *  let currentConnectionStates = connectionState.get();
  *  // the current internal buffered items which have the time details, it returns a new array if there was any new push, so it can be used for listening.
- *  let timeBufferedItems[] = connectionState.timeBufferedItems;
+ *  let timeBufferedItems = connectionState.timeBufferedItems;
  * ```
  */
 export default class StateBuffer<T> {
   public timeBufferedItems = new Array<TimeBufferedItem<T>>();
-  public isRemoveLastDuplicated?: boolean = false;
+  public removeLastDuplicated?: boolean = false;
   public defaultMinDuration?: number;
 
   /**
    * Constuct the value buffer with two optional options:
    * @param defaultMinDuration optinal,used if no minDuration parameter given on push
-   * @param isRemoveLastDuplicated optinal, if true, will try to remove the last value in the buffer immediately if it DEEP equals with the new value
+   * @param removeLastDuplicated optinal, if true, will try to remove the last value in the buffer immediately if it DEEP equals with the new value
    */
   public StateBuffer(options?: {
     defaultMinDuration?: number;
-    isRemoveLastDuplicated?: boolean;
+    removeLastDuplicated?: boolean;
   }) {
     this.defaultMinDuration = options?.defaultMinDuration;
-    this.isRemoveLastDuplicated = options?.isRemoveLastDuplicated;
+    this.removeLastDuplicated = options?.removeLastDuplicated;
   }
 
   get(): T[] {
@@ -65,7 +65,7 @@ export default class StateBuffer<T> {
 
     // try remove the last duplicated message if the option enabled
     let items =
-      value != undefined && this.isRemoveLastDuplicated
+      value != undefined && this.removeLastDuplicated
         ? this.removeLastDuplicated(value)
         : this.timeBufferedItems;
 
