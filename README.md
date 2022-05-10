@@ -3,7 +3,7 @@ Does state change too quickly? With stage-transition-buffer, the minimum duratio
 
 # usage example
 ```javascript
-import { StateBuffer } from '../dist/src/index.js';
+import { StateBuffer } from 'state-transition-buffer';
 
 let connectionState = new StateBuffer({
   defaultMinDuration: 1000,
